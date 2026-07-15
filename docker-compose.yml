@@ -1,0 +1,36 @@
+services:
+  # Główny kontener aplikacji (silnik PHP-FPM)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: laravel-ocr-app
+    container_name: laravel-ocr-app
+    restart: unless-stopped
+    tty: true
+    working_dir: /var/www
+    volumes:
+      - .:/var/www
+      # Mapowanie katalogu bazy danych, aby SQLite zachowywał dane pomiędzy restartami kontenerów
+      - ./database:/var/www/database
+    networks:
+      - ocr-network
+
+  # Kontener serwera Nginx do serwowania żądań HTTP i plików statycznych
+  nginx:
+    image: nginx:alpine
+    container_name: ocr-nginx
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/var/www
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - app
+    networks:
+      - ocr-network
+
+networks:
+  ocr-network:
+    driver: bridge

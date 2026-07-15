@@ -1,0 +1,143 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Young Tech Challenge - Dokumentacja API",
+        "description": "API do automatycznego przetwarzania faktur PDF przy użyciu OCR oraz sztucznej inteligencji (Groq AI) w projekcie Laravel.",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://127.0.0.1:8000/api",
+            "description": "Lokalny Serwer API"
+        }
+    ],
+    "paths": {
+        "/invoices": {
+            "get": {
+                "tags": [
+                    "Faktury"
+                ],
+                "summary": "Pobierz listę wszystkich zapisanych faktur",
+                "description": "Zwraca listę faktur wraz z ich kontrahentami, pozycjami oraz płatnościami.",
+                "operationId": "getInvoicesList",
+                "responses": {
+                    "200": {
+                        "description": "Pomyślnie pobrano listę faktur."
+                    },
+                    "500": {
+                        "description": "Wewnętrzny błąd serwera."
+                    }
+                }
+            }
+        },
+        "/invoices/{id}": {
+            "get": {
+                "tags": [
+                    "Faktury"
+                ],
+                "summary": "Pobierz szczegóły konkretnej faktury",
+                "description": "Zwraca pełne dane szczegółowe wybranej faktury na podstawie jej identyfikatora ID.",
+                "operationId": "getInvoiceById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identyfikator ID faktury",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Pomyślnie pobrano szczegóły faktury."
+                    },
+                    "404": {
+                        "description": "Faktura o podanym ID nie została znaleziona."
+                    },
+                    "500": {
+                        "description": "Wewnętrzny błąd serwera."
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Faktury"
+                ],
+                "summary": "Usuń fakturę z bazy danych",
+                "description": "Usuwa wybraną fakturę oraz powiązane z nią pozycje i płatności kaskadowo z bazy SQLite.",
+                "operationId": "deleteInvoice",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Identyfikator ID faktury do usunięcia",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Faktura została pomyślnie usunięta."
+                    },
+                    "404": {
+                        "description": "Faktura o podanym ID nie została znaleziona."
+                    },
+                    "500": {
+                        "description": "Wewnętrzny błąd serwera."
+                    }
+                }
+            }
+        },
+        "/invoices/upload": {
+            "post": {
+                "tags": [
+                    "Faktury"
+                ],
+                "summary": "Prześlij fakturę PDF w celu przetworzenia przez OCR i AI",
+                "description": "Ekstrahuje surowy tekst z pliku PDF, wysyła go do Groq AI, która automatycznie rozpoznaje pola i zapisuje dane w relacyjnej bazie SQLite.",
+                "operationId": "uploadInvoice",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "invoice_file"
+                                ],
+                                "properties": {
+                                    "invoice_file": {
+                                        "description": "Plik PDF z fakturą (maks. 10MB)",
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Faktura została pomyślnie przetworzona i zapisana w bazie SQLite."
+                    },
+                    "422": {
+                        "description": "Błąd walidacji pliku lub brak warstwy tekstowej."
+                    },
+                    "500": {
+                        "description": "Błąd wewnętrzny serwera."
+                    }
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Faktury",
+            "description": "Faktury"
+        }
+    ]
+}
