@@ -36,7 +36,7 @@
             </div>
 
             <!-- Login Form -->
-            <form id="login-form" class="space-y-4">
+            <form id="login-form" class="space-y-4" autocomplete="off">
                 <div class="space-y-1">
                     <label class="text-xs font-bold text-slate-500 uppercase">E-mail</label>
                     <input type="email" id="login-email" required class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm transition" placeholder="admin@example.com" />
@@ -49,7 +49,7 @@
             </form>
 
             <!-- Register Form -->
-            <form id="register-form" class="space-y-4 hidden">
+            <form id="register-form" class="space-y-4 hidden" autocomplete="off>
                 <div class="space-y-1">
                     <label class="text-xs font-bold text-slate-500 uppercase">Imię i nazwisko</label>
                     <input type="text" id="reg-name" required class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm transition" placeholder="Jan Kowalski" />
@@ -259,6 +259,11 @@
         function removeAuthToken() { localStorage.removeItem('access_token'); }
 
         function checkAuth() {
+            // 1. Resetowanie formularzy na starcie (czyści stare wpisy przeglądarki)
+            loginForm.reset();
+            registerForm.reset();
+
+            // 2. Reszta Twojego dotychczasowego kodu checkAuth...
             const token = getAuthToken();
             const user = localStorage.getItem('user_name');
             if (token) {
