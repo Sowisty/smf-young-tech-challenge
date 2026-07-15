@@ -12,9 +12,18 @@ use OpenApi\Attributes as OA;
 use Exception;
 
 #[OA\Info(
-    version: "1.2.0",
-    title: "Young Tech Challenge - Dokumentacja API z Kolejkami, Auth i OCR (PDF/JPG/PNG)",
-    description: "API do asynchronicznego przetwarzania faktur PDF, JPG i PNG w tle za pomocą kolejek systemowych, biblioteki Tesseract OCR i sztucznej inteligencji, w pełni zabezpieczone przez Laravel Sanctum."
+    version: "1.0.0",
+    title: "Young Tech Challenge - Dokumentacja API",
+    description: "API do automatycznego przetwarzania faktur PDF przy użyciu OCR oraz sztucznej inteligencji (Groq AI) w projekcie Laravel."
+)]
+#[OA\SecurityScheme(
+    securityScheme: "sanctum",
+    type: "http",
+    name: "Authorization",
+    in: "header",
+    bearerFormat: "JWT",
+    scheme: "bearer",
+    description: "Wklej tutaj swój wygenerowany token API (sam ciąg znaków, bez słowa 'Bearer')"
 )]
 #[OA\Server(
     url: "http://127.0.0.1:8000/api",
@@ -117,7 +126,6 @@ class InvoiceApiController extends Controller
     )]
     public function upload(Request $request)
     {
-        // Rozszerzamy walidację mimes o formaty graficzne: jpeg, png, jpg
         $request->validate([
             'invoice_file' => 'required|mimes:pdf,jpeg,png,jpg|max:10240',
         ]);
@@ -125,11 +133,9 @@ class InvoiceApiController extends Controller
         try {
             $file = $request->file('invoice_file');
 
-            // 1. Bezpieczne zapisanie pliku w katalogu storage/app/invoices
             $fileName = time() . '_' . $file->getClientOriginalName();
             $filePath = $file->storeAs('invoices', $fileName);
 
-            // 2. Utworzenie rekordu faktury z domyślnym statusem 'pending'
             $invoice = Invoice::create([
                 'number' => 'Przetwarzanie...',
                 'date' => now()->format('Y-m-d'),
@@ -137,7 +143,6 @@ class InvoiceApiController extends Controller
                 'file_path' => $filePath
             ]);
 
-            // 3. Wrzucenie zadania przetwarzania w tle do Kolejki Laravela!
             ProcessInvoiceOcr::dispatch($invoice, $filePath);
 
             return response()->json([
@@ -163,6 +168,13 @@ class InvoiceApiController extends Controller
         security: [["sanctum" => []]],
         tags: ["Faktury"]
     )]
+    #[OA\Parameter(
+        name: "id",
+        description: "Identyfikator ID faktury do usunięcia",
+        in: "path",
+        required: true,
+        schema: new OA\Schema(type: "integer")
+    )]
     #[OA\Response(
         response: 200,
         description: "Faktura pomyślnie usunięta."
@@ -178,7 +190,6 @@ class InvoiceApiController extends Controller
                 ], 404);
             }
 
-            // Usunięcie fizycznego pliku z pamięci, jeśli istnieje
             if ($invoice->file_path && Storage::exists($invoice->file_path)) {
                 Storage::delete($invoice->file_path);
             }

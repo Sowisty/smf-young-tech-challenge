@@ -12,22 +12,132 @@
         }
     ],
     "paths": {
+        "/register": {
+            "post": {
+                "tags": [
+                    "Autoryzacja"
+                ],
+                "summary": "Rejestracja nowego użytkownika",
+                "operationId": "5d4fa5d5607ed675ba93907e1fc94534",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Jan Kowalski"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "jan@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "haslo123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Użytkownik pomyślnie zarejestrowany."
+                    }
+                }
+            }
+        },
+        "/login": {
+            "post": {
+                "tags": [
+                    "Autoryzacja"
+                ],
+                "summary": "Logowanie użytkownika",
+                "operationId": "67d6d0fdd54fba132e1b6f55ca254183",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "jan@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "format": "password",
+                                        "example": "haslo123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Pomyślnie zalogowano, zwrócono token."
+                    },
+                    "401": {
+                        "description": "Błędne dane logowania."
+                    }
+                }
+            }
+        },
+        "/logout": {
+            "post": {
+                "tags": [
+                    "Autoryzacja"
+                ],
+                "summary": "Wyloguj użytkownika",
+                "description": "Usuwa aktualny token Sanctum.",
+                "operationId": "logoutUser",
+                "responses": {
+                    "200": {
+                        "description": "Pomyślnie wylogowano."
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/invoices": {
             "get": {
                 "tags": [
                     "Faktury"
                 ],
                 "summary": "Pobierz listę wszystkich zapisanych faktur",
-                "description": "Zwraca listę faktur wraz z ich kontrahentami, pozycjami oraz płatnościami.",
+                "description": "Zwraca listę wszystkich faktur (w tym tych o statusie pending/processing) wraz z ich kontrahentami, pozycjami i płatnościami. Wymaga autoryzacji.",
                 "operationId": "getInvoicesList",
                 "responses": {
                     "200": {
                         "description": "Pomyślnie pobrano listę faktur."
-                    },
-                    "500": {
-                        "description": "Wewnętrzny błąd serwera."
                     }
-                }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
             }
         },
         "/invoices/{id}": {
@@ -35,8 +145,8 @@
                 "tags": [
                     "Faktury"
                 ],
-                "summary": "Pobierz szczegóły konkretnej faktury",
-                "description": "Zwraca pełne dane szczegółowe wybranej faktury na podstawie jej identyfikatora ID.",
+                "summary": "Pobierz szczegóły oraz status konkretnej faktury",
+                "description": "Zwraca pełne dane szczegółowe oraz aktualny status ('pending', 'processing', 'completed', 'failed') wybranej faktury. Służy do odpytywania (pollingu) o stan zadania w tle.",
                 "operationId": "getInvoiceById",
                 "parameters": [
                     {
@@ -55,18 +165,20 @@
                     },
                     "404": {
                         "description": "Faktura o podanym ID nie została znaleziona."
-                    },
-                    "500": {
-                        "description": "Wewnętrzny błąd serwera."
                     }
-                }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
             },
             "delete": {
                 "tags": [
                     "Faktury"
                 ],
                 "summary": "Usuń fakturę z bazy danych",
-                "description": "Usuwa wybraną fakturę oraz powiązane z nią pozycje i płatności kaskadowo z bazy SQLite.",
+                "description": "Usuwa wybraną fakturę oraz jej powiązany plik fizyczny z dysku.",
                 "operationId": "deleteInvoice",
                 "parameters": [
                     {
@@ -81,15 +193,14 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": "Faktura została pomyślnie usunięta."
-                    },
-                    "404": {
-                        "description": "Faktura o podanym ID nie została znaleziona."
-                    },
-                    "500": {
-                        "description": "Wewnętrzny błąd serwera."
+                        "description": "Faktura pomyślnie usunięta."
                     }
-                }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
             }
         },
         "/invoices/upload": {
@@ -97,8 +208,8 @@
                 "tags": [
                     "Faktury"
                 ],
-                "summary": "Prześlij fakturę PDF w celu przetworzenia przez OCR i AI",
-                "description": "Ekstrahuje surowy tekst z pliku PDF, wysyła go do Groq AI, która automatycznie rozpoznaje pola i zapisuje dane w relacyjnej bazie SQLite.",
+                "summary": "Prześlij plik PDF, JPG lub PNG i zleć przetwarzanie w tle",
+                "description": "Zapisuje przesłany plik (PDF/JPG/JPEG/PNG) na dysku, tworzy rekord faktury ze statusem 'pending' i wrzuca zadanie do kolejki systemowej. Zwraca status 202 Accepted.",
                 "operationId": "uploadInvoice",
                 "requestBody": {
                     "required": true,
@@ -110,7 +221,7 @@
                                 ],
                                 "properties": {
                                     "invoice_file": {
-                                        "description": "Plik PDF z fakturą (maks. 10MB)",
+                                        "description": "Plik faktury w formacie PDF, JPG lub PNG (maks. 10MB)",
                                         "type": "string",
                                         "format": "binary"
                                     }
@@ -121,20 +232,35 @@
                     }
                 },
                 "responses": {
-                    "201": {
-                        "description": "Faktura została pomyślnie przetworzona i zapisana w bazie SQLite."
-                    },
-                    "422": {
-                        "description": "Błąd walidacji pliku lub brak warstwy tekstowej."
-                    },
-                    "500": {
-                        "description": "Błąd wewnętrzny serwera."
+                    "202": {
+                        "description": "Plik przesłany pomyślnie, zadanie trafiło do kolejki w tle."
                     }
-                }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "sanctum": {
+                "type": "http",
+                "description": "Wklej tutaj swój wygenerowany token API (sam ciąg znaków, bez słowa 'Bearer')",
+                "name": "Authorization",
+                "in": "header",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
             }
         }
     },
     "tags": [
+        {
+            "name": "Autoryzacja",
+            "description": "Autoryzacja"
+        },
         {
             "name": "Faktury",
             "description": "Faktury"

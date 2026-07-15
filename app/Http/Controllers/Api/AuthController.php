@@ -12,12 +12,21 @@ use Exception;
 
 class AuthController extends Controller
 {
-    #[OA\Post(
+   #[OA\Post(
         path: "/register",
-        operationId: "registerUser",
-        summary: "Zarejestruj nowego użytkownika",
-        description: "Tworzy konto nowego użytkownika i zwraca token dostępu Sanctum.",
-        tags: ["Autoryzacja"]
+        summary: "Rejestracja nowego użytkownika",
+        tags: ["Autoryzacja"],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ["name", "email", "password"],
+                properties: [
+                    new OA\Property(property: "name", type: "string", example: "Jan Kowalski"),
+                    new OA\Property(property: "email", type: "string", format: "email", example: "jan@example.com"),
+                    new OA\Property(property: "password", type: "string", format: "password", example: "haslo123")
+                ]
+            )
+        )
     )]
     #[OA\Response(
         response: 201,
@@ -55,10 +64,18 @@ class AuthController extends Controller
 
     #[OA\Post(
         path: "/login",
-        operationId: "loginUser",
-        summary: "Zaloguj się i pobierz token Sanctum",
-        description: "Weryfikuje dane logowania i zwraca token Bearer.",
-        tags: ["Autoryzacja"]
+        summary: "Logowanie użytkownika",
+        tags: ["Autoryzacja"],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ["email", "password"],
+                properties: [
+                    new OA\Property(property: "email", type: "string", format: "email", example: "jan@example.com"),
+                    new OA\Property(property: "password", type: "string", format: "password", example: "haslo123")
+                ]
+            )
+        )
     )]
     #[OA\Response(
         response: 200,
