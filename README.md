@@ -81,7 +81,7 @@ Najprostszym i zalecanym sposobem na uruchomienie projektu w identycznym środow
 
 ### Wymagania wstępne:
 * Zainstalowany i uruchomiony **Docker Desktop** na Twoim komputerze.
-* Klucz API do platformy **Groq** (`gsk_...`).
+* Klucz API do platformy [**Groq**](https://groq.com/) (`gsk_...`).
 
 ### Krok 1: Sklonowanie repozytorium i przygotowanie `.env`
 1. Sklonuj repozytorium i wejdź do katalogu projektu:
@@ -93,13 +93,8 @@ Najprostszym i zalecanym sposobem na uruchomienie projektu w identycznym środow
    ```bash
    cp .env.example .env
    ```
-3. Otwórz plik `.env` i uzupełnij klucz API Groq oraz wskaż bezwzględną ścieżkę do bazy SQLite w kontenerze:
+3. Otwórz plik `.env` i uzupełnij klucz API Groq:
    ```env
-   # Ponieważ SQLite i Database Queue są domyślnie skonfigurowane w Laravelu 11,
-   # wystarczy, że upewnisz się, iż poniższa ścieżka do pliku bazy w Dockerze jest odkomentowana:
-   DB_DATABASE=/var/www/database/database.sqlite
-
-   # Wklej swój osobisty klucz API z platformy Groq:
    GROQ_API_KEY=twój_klucz_gsk_...
    ```
 
@@ -142,6 +137,10 @@ docker-compose exec app php artisan queue:work
 ### Krok 5: Dostęp do aplikacji
 Otwórz przeglądarkę i wejdź pod adres:
 👉 [http://127.0.0.1:8000](http://127.0.0.1:8000)
+
+### Krok 6: Dostęp do API
+Otwórz przeglądarkę i wejdź pod adres:
+👉 [http://127.0.0.1:8000/api/documentation](http://127.0.0.1:8000/api/documentation)
 
 ---
 
