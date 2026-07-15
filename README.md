@@ -86,7 +86,7 @@ Najprostszym i zalecanym sposobem na uruchomienie projektu w identycznym środow
 ### Krok 1: Sklonowanie repozytorium i przygotowanie `.env`
 1. Sklonuj repozytorium i wejdź do katalogu projektu:
    ```bash
-   git clone [https://github.com/TwojLogin/smf-young-tech-challenge.git](https://github.com/TwojLogin/smf-young-tech-challenge.git)
+   git clone https://github.com/Sowisty/smf-young-tech-challenge.git
    cd smf-young-tech-challenge
    ```
 2. Skopiuj szablon pliku środowiskowego:
