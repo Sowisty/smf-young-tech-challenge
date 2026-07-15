@@ -459,6 +459,13 @@
                 const response = await fetch('/api/invoices', {
                     headers: { 'Authorization': `Bearer ${getAuthToken()}`, 'Accept': 'application/json' }
                 });
+
+                // JEŚLI SERWER ODPOWIADA 401 (TOKEN NIEAKTYWNY) -> WYLOGUJ AUTOMATYCZNIE
+                if (response.status === 401) {
+                    forceLogoutDueToExpiredSession();
+                    return;
+                }
+
                 const data = await response.json();
                 
                 if (response.ok) {
@@ -466,7 +473,6 @@
                     renderInvoices(data);
                     updateStats(data);
 
-                    // Jeśli po przeładowaniu mamy na liście jakieś "pending" lub "processing" faktury, włączamy dla nich polling
                     data.forEach(inv => {
                         if ((inv.status === 'pending' || inv.status === 'processing') && !pollingIntervals[inv.id]) {
                             startStatusPolling(inv.id);
@@ -612,6 +618,15 @@
         }
 
         window.onload = checkAuth;
+
+        // Funkcja ratunkowa w przypadku wykrycia nieaktywnego tokenu w bazie danych
+        function forceLogoutDueToExpiredSession() {
+            removeAuthToken();
+            localStorage.removeItem('user_name');
+            authScreen.classList.remove('hidden');
+            invoicesList.innerHTML = '';
+            showStatus("Twoja sesja wygasła. Zaloguj się ponownie.", "error");
+        }
     </script>
 </body>
 </html>
