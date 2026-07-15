@@ -93,10 +93,13 @@ Najprostszym i zalecanym sposobem na uruchomienie projektu w identycznym środow
    ```bash
    cp .env.example .env
    ```
-3. Otwórz plik `.env` i uzupełnij klucz API Groq oraz zmień połączenia na SQLite i kolejki bazodanowe:
+3. Otwórz plik `.env` i uzupełnij klucz API Groq oraz wskaż bezwzględną ścieżkę do bazy SQLite w kontenerze:
    ```env
+   # Ponieważ SQLite i Database Queue są domyślnie skonfigurowane w Laravelu 11,
+   # wystarczy, że upewnisz się, iż poniższa ścieżka do pliku bazy w Dockerze jest odkomentowana:
    DB_DATABASE=/var/www/database/database.sqlite
 
+   # Wklej swój osobisty klucz API z platformy Groq:
    GROQ_API_KEY=twój_klucz_gsk_...
    ```
 
@@ -108,21 +111,24 @@ docker-compose up -d --build
 *Docker pobierze niezbędne warstwy, skompiluje PHP 8.4, zainstaluje Composera, zależności biblioteczne oraz silnik Tesseract OCR wraz z polskimi paczkami językowymi.*
 
 ### Krok 3: Konfiguracja aplikacji i migracja bazy
-Wykonaj migracje bazodanowe i zainstaluj mechanizmy API wewnątrz uruchomionego kontenera:
+Wykonaj konfigurację zależności oraz przygotowanie struktur bazy SQLite wewnątrz kontenera:
 ```bash
-# 1. Generowanie klucza aplikacji
+# 1. Pobranie i synchronizacja zależności Composera (tworzy folder vendor lokalnie)
+docker-compose exec app composer install
+
+# 2. Generowanie klucza szyfrującego aplikacji
 docker-compose exec app php artisan key:generate
 
-# 2. Instalacja i konfiguracja tabel Sanctum (API Tokeny)
+# 3. Instalacja modułu API i Sanctum
 docker-compose exec app php artisan install:api
 
-# 3. Uruchomienie migracji struktur tabel w bazie SQLite
+# 4. Utworzenie fizycznego pliku bazy danych SQLite na dysku
+docker-compose exec app touch database/database.sqlite
+
+# 5. Uruchomienie migracji struktur tabel w bazie SQLite
 docker-compose exec app php artisan migrate:fresh
 
-# 4. Zoptymalizowanie i wygenerowanie klas autoloadera
-docker-compose exec app composer dump-autoload --optimize
-
-# 5. Nadanie odpowiednich uprawnień do zapisu bazy i storage przez serwer Nginx
+# 6. Nadanie odpowiednich uprawnień do zapisu bazy i storage przez serwer Nginx w kontenerze
 docker-compose exec app chown -R www-data:www-data /var/www/storage /var/www/database
 ```
 
@@ -135,7 +141,7 @@ docker-compose exec app php artisan queue:work
 
 ### Krok 5: Dostęp do aplikacji
 Otwórz przeglądarkę i wejdź pod adres:
-👉 **http://127.0.0.1:8000**
+👉 [http://127.0.0.1:8000](http://127.0.0.1:8000)
 
 ---
 
