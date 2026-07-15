@@ -49,7 +49,7 @@
             </form>
 
             <!-- Register Form -->
-            <form id="register-form" class="space-y-4 hidden" autocomplete="off>
+            <form id="register-form" class="space-y-4 hidden" autocomplete="off">
                 <div class="space-y-1">
                     <label class="text-xs font-bold text-slate-500 uppercase">Imię i nazwisko</label>
                     <input type="text" id="reg-name" required class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-sm transition" placeholder="Jan Kowalski" />
